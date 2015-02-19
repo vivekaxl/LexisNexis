@@ -2,12 +2,10 @@ import ast
 dictnames = {}
 class v(ast.NodeVisitor):
   def generic_visit(self, node):
-  	try:
-  		dictnames[type(node).__name__] += 1
-  	except:
-  		dictnames[type(node).__name__] = 1
-  	ast.NodeVisitor.generic_visit(self, node)
-  def visit_Load(self, node): pass
+    try:dictnames[type(node).__name__] += 1
+    except: dictnames[type(node).__name__] = 1
+    ast.NodeVisitor.generic_visit(self, node)
+  #def visit_Load(self, node): pass
 
 def get_names(dir_name):
   import glob,os
@@ -16,7 +14,7 @@ def get_names(dir_name):
   return sorted(filelist)
 
 def test():
-  source_file = "deadant.py"
+  source_file = "./vivekaxl/xomo.py"
   f = open(source_file,"r")
   x = v()
   t = ast.parse(f.read())
@@ -72,6 +70,7 @@ def entropy(s):
 
 
 if __name__ == '__main__':
+  global dictnames
   preprocessing()
   from collections import defaultdict
   collector = defaultdict(dict)
@@ -81,26 +80,32 @@ if __name__ == '__main__':
   for tps in folks:
     storage ={}
     source_files = get_names(tps)
+    dictnames ={}
     for source_file in source_files:
-      print tps,source_file
+      #print tps,source_file
       try:
         f = open(source_file,"r")
         x = v()
         t = ast.parse(f.read())
         x.visit(t)
       except:
-        continue
-      normalize = sum([dictnames[x] for x in dictnames.keys()])
+        print source_file
+        pass
+    normalize = sum([dictnames[x] for x in dictnames.keys()])
+    #print tps
+    #print dictnames
     for x in dictnames.keys():
       storage[x] = float(dictnames[x])/normalize
+      #print x,storage[x]
     collector[tps] = storage
+
   for c in collector.keys():features.update(collector[c].keys())
   
   for f in features:
     print f,
     for c in collector.keys():
       try:
-        print collector[c][f],
+        print c,"|",collector[c][f],
       except:
         print "0",
     print
