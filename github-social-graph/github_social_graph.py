@@ -32,6 +32,7 @@ from StringIO import StringIO
 from pygithub3 import Github
 from pygraphviz import AGraph
 from PIL import Image, ImageDraw
+from bot import get_browser, search_people
 
 
 SUPPORTED_INPUT_FORMATS = ['json', 'dot']
@@ -376,7 +377,8 @@ def main():
         if options.input is not sys.stdin:
             options.input.close()
     else:
-        graph_data = fetcher(options)
+        #graph_data = fetcher(options)
+        get_info(options)
 
     if options.output_format == 'json':
         json.dump(graph_data, options.output)
@@ -391,6 +393,190 @@ def main():
             draw_graph(graph, options.output, options.output_format)
     if options.output is not sys.stdout:
         options.output.close()
+
+
+def get_info(options):
+    def get_or_set(username):
+        try:
+            info = graph_data[username]
+        except KeyError:
+            graph_data[username] = info = {}
+        return info
+
+    github = Github(
+        login=options.username, password=options.password,
+        token=options.token)
+
+    graph_data = {}
+    max_length = 100
+    usernames = set(options.users)
+
+    import os
+    try:
+        os.remove("userinfo.txt")
+    except:
+        pass
+    file = open("userinfo.txt", "a+")
+    log('Start fetching GitHub data. It may take some time, be patient.')
+    
+    enter_val = -1
+    TRIED = 0
+    DONE = 0
+    browser = get_browser()
+    while len(usernames) < max_length and enter_val != len(usernames):
+        
+        enter_val = len(usernames)
+        print "EnterVal: ",enter_val
+        for username in usernames.copy():
+            print "-" * 200
+            TRIED += 1
+            vout = ""
+            log('Fetching {}\'s followers and following...', username)
+            gh = github.users.get(user = username)
+            vout += "<id name=" + str(username) + "> \n"
+            try:
+                vout += "<Name>" + str(gh.name) +"</Name> \n"
+            except: 
+                continue
+                vout += str((gh.name).encode('utf-8')) + "</Name> \n"
+            vout += "<Email>" + str(gh.email) +"</Email> \n"
+            vout += "<Bio>" + str(gh.bio) + "</Bio> \n"
+            vout += "<Blog>" + str(gh.blog) + "</Blog> \n"
+            vout += "<Company>" + str(gh.company) + "</Company> \n"
+            vout += "<Hirable>" + str(gh.hireable) + "</Hirable> \n"
+            vout += "<Location>" + str(gh.location) + "</Location> \n"
+            vout += "<repos>" + str(gh.public_repos) + "</repos> \n"
+            vout += "<Updated>" + str(gh.updated_at) + "</Updated> \n"
+            
+            lang = {}
+            vout += "<Languages>"
+            for r in github.repos.list(username).all():
+                if r.language in lang.keys():
+                    lang[r.language] += 1
+                else:
+                    lang[r.language] = 1
+
+            for i,x in enumerate(lang.keys()):
+                vout += "<lang"+str(i)+">"
+                vout += str(x) + ":" + str(lang[x])
+                vout += "</lang>\n"
+            vout += "</Languages>\n"
+
+            vout += "</id> \n"
+           
+            followers = github.users.followers.list(username).all()
+            following = github.users.followers.list_following(username).all()
+            try: 
+                repo_python = sorted([x for x in github.repos.list(username).all() if x.language == "Python"],key=lambda x: x.size)[-1]
+                if repo_python.size > 20000: raise Exception("Oversize!")
+                try:
+                    location = gh.location.split(",")[0]
+                except:
+                    location = gh.location
+                result_linkedin = search_people(browser, gh.name + " " + location)
+                if result_linkedin == -1: raise Exception("No linkedin")
+                vout += "<Skills>" + result_linkedin["skills"] + "</Skills>\n"
+                for i,edu in enumerate(result_linkedin["education"]):
+                    vout += "<Educa>\n"
+                    vout += "<Course>" + str(edu["Course"]) + "</Course>\n"
+                    vout += "<School>" + str(edu["School"]) + "</School>\n"
+                    vout += "<Specialization>" + str(edu["Specialization"]) + "</Specialization>\n"
+                    vout += "</Educa>\n"
+                for i,job in enumerate(result_linkedin["jobs"]):
+                    vout += "<Jobs>\n"
+                    vout += "<Duration>" + str(job["duration"]) + "</Duration>\n"
+                    vout += "<Place>" + str(job["place"]) + "</Place>\n"
+                    vout += "<Title>" + str(job["title"]) + "</Title>\n"
+                    vout += "</Jobs>\n"
+
+
+                import subprocess
+                subprocess.call(['git', 'clone', repo_python.clone_url])
+                subprocess.call(['mv', repo_python.full_name.split("/")[-1], username])
+                os.system("cat")
+                dirname = "./Repo/"
+                f = open("user_details.txt", "w")
+                f.write(vout)
+                f.close()
+                subprocess.call(['mv', username, dirname])
+                subprocess.call(['mv', "user_details.txt", dirname + "/" + username])
+                print "repo cloned!"
+                DONE += 1
+                info = get_or_set(username)
+            except:
+                vout = ""
+                print "Removed: ",username
+                usernames.remove(username)
+                info = get_or_set("removed_" + username)
+
+            file.write(vout)
+            file.flush()
+            
+            info['followers'] = [f.login for f in followers[:20]]
+            info['following'] = [f.login for f in following[:20]]
+            if len(usernames) < max_length:
+                for  f in followers: usernames.add(str(f.login))
+                for f in following: usernames.add(str(f.login))
+            try:
+                usernames.remove(username)
+            except:
+                pass
+    for username in usernames.copy():
+        log('Fetching {}\'s followers and following...', username)
+        vout = ""
+
+        gh = github.users.get(user = username)
+        vout += "<id name=" + str(username) + "> \n"
+        try:
+            vout += "<Name>" + str(gh.name) +"</Name> \n"
+        except: 
+            continue
+            vout += str((gh.name).encode('utf-8')) + "</Name> \n"
+        vout += "<Email>" + str(gh.email) +"</Email> \n"
+        vout += "<Bio>" + str(gh.bio) + "</Bio> \n"
+        vout += "<Blog>" + str(gh.blog) + "</Blog> \n"
+        vout += "<Company>" + str(gh.company) + "</Company> \n"
+        vout += "<Hirable>" + str(gh.hireable) + "</Hirable> \n"
+        vout += "<Location>" + str(gh.location) + "</Location> \n"
+        vout += "<repos>" + str(gh.public_repos) + "</repos> \n"
+        vout += "<Updated>" + str(gh.updated_at) + "</Updated> \n"
+        
+        lang = {}
+        vout += "<Languages>"
+        for r in github.repos.list(username).all():
+            if r.language in lang.keys():
+                lang[r.language] += 1
+            else:
+                lang[r.language] = 1
+
+        for i,x in enumerate(lang.keys()):
+            vout += "<lang"+str(i)+">"
+            vout += str(x) + ":" + str(lang[x])
+            vout += "</lang>\n"
+        vout += "</Languages>\n"
+
+        vout += "</id> \n"
+
+
+        followers = github.users.followers.list(username).all()
+        following = github.users.followers.list_following(username).all()
+        try: 
+            repo_python = sorted([x for x in github.repos.list(username).all() if x.language == "Python"],key=lambda x: x.size)[-1]
+            import subprocess
+            subprocess.call(['git', 'clone', repo_python.clone_url])
+            subprocess.call(['mv',repo_python.full_name.split("/")[-1],username])
+            dirname = "./Repo/" + username
+            subprocess.call(['mv',username,dirname])
+            print "repo cloned!"
+            info = get_or_set(username)
+            usernames.remove(username)
+        except:
+            print "Removed: ",username
+            usernames.remove(username)
+            info = get_or_set("removed_" + username)
+        file.write(vout)
+        file.flush()
+    file.close()
 
 
 if __name__ == '__main__':
