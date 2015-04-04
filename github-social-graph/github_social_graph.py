@@ -432,21 +432,45 @@ def get_info(options):
             TRIED += 1
             vout = ""
             log('Fetching {}\'s followers and following...', username)
+            print "STATUS: " + str(DONE) + "/" + str(TRIED)
             gh = github.users.get(user = username)
             vout += "<id name=" + str(username) + "> \n"
             try:
-                vout += "<Name>" + str(gh.name) +"</Name> \n"
-            except: 
-                continue
-                vout += str((gh.name).encode('utf-8')) + "</Name> \n"
-            vout += "<Email>" + str(gh.email) +"</Email> \n"
-            vout += "<Bio>" + str(gh.bio) + "</Bio> \n"
-            vout += "<Blog>" + str(gh.blog) + "</Blog> \n"
-            vout += "<Company>" + str(gh.company) + "</Company> \n"
-            vout += "<Hirable>" + str(gh.hireable) + "</Hirable> \n"
-            vout += "<Location>" + str(gh.location) + "</Location> \n"
-            vout += "<repos>" + str(gh.public_repos) + "</repos> \n"
-            vout += "<Updated>" + str(gh.updated_at) + "</Updated> \n"
+                vout += "<Name>" + str(gh.name.encode('utf-8','ignore')) + "</Name> \n"
+            except:
+                vout += "?" + "</Name> \n"
+            try:
+                vout += "<Email>" + str(gh.email.encode('utf-8','ignore')) + "</Email> \n"
+            except:
+                vout += str("?") + "</Email> \n"
+            try:
+                vout += "<Bio>" + str(gh.bio.encode('utf-8','ignore')) + "</Bio> \n"
+            except:
+                vout += "?" + "</Bio> \n"
+            try:
+                vout += "<Blog>" + str(gh.blog.encode('utf-8','ignore')) + "</Blog> \n"
+            except:
+                vout += "?" + "</Blog> \n"
+            try:
+                vout += "<Company>" + str(gh.company.encode('utf-8','ignore')) + "</Company> \n"
+            except:
+                vout += "?" + "</Company> \n"
+            try:
+                vout += "<Hirable>" + str(gh.hireable.encode('utf-8','ignore')) + "</Hirable> \n"
+            except:
+                vout += "?" + "</Hirable> \n"
+            try:
+                vout += "<Location>" + str(gh.location.encode('utf-8','ignore')) + "</Location> \n"
+            except:
+                vout += "?" + "</Hirable> \n"
+            try:
+                vout += "<repos>" + str(gh.public_repos.encode('utf-8','ignore')) + "</repos> \n"
+            except:
+                vout += "?" + "</repos> \n"
+            try:
+                vout += "<Updated>" + str(gh.updated_at.encode('utf-8','ignore')) + "</Updated> \n"
+            except:
+                vout += "?" + "</Updated> \n"
             
             lang = {}
             vout += "<Languages>"
@@ -468,13 +492,21 @@ def get_info(options):
             following = github.users.followers.list_following(username).all()
             try: 
                 repo_python = sorted([x for x in github.repos.list(username).all() if x.language == "Python"],key=lambda x: x.size)[-1]
-                if repo_python.size > 20000: raise Exception("Oversize!")
+                if repo_python.size > 40000: raise Exception("Oversize!")
                 try:
                     location = gh.location.split(",")[0]
                 except:
-                    location = gh.location
+                    try:
+                        location = gh.location
+                    except:
+                        pass
+
                 result_linkedin = search_people(browser, gh.name + " " + location)
-                if result_linkedin == -1: raise Exception("No linkedin")
+                if result_linkedin == -1:
+                    if gh.email is not None:
+                        result_linkedin = search_people(browser, gh.name + " " + str(gh.email.encode('utf-8', 'ignore')))
+                if result_linkedin == -1:raise Exception("No linkedin")
+
                 vout += "<Skills>" + result_linkedin["skills"] + "</Skills>\n"
                 for i,edu in enumerate(result_linkedin["education"]):
                     vout += "<Educa>\n"
@@ -482,8 +514,10 @@ def get_info(options):
                     vout += "<School>" + str(edu["School"]) + "</School>\n"
                     vout += "<Specialization>" + str(edu["Specialization"]) + "</Specialization>\n"
                     vout += "</Educa>\n"
+                print result_linkedin["jobs"]
                 for i,job in enumerate(result_linkedin["jobs"]):
                     vout += "<Jobs>\n"
+                    vout += "<Title>" + str(job["title"]) + "</Title>\n"
                     vout += "<Duration>" + str(job["duration"]) + "</Duration>\n"
                     vout += "<Place>" + str(job["place"]) + "</Place>\n"
                     vout += "<Title>" + str(job["title"]) + "</Title>\n"
@@ -493,17 +527,21 @@ def get_info(options):
                 import subprocess
                 subprocess.call(['git', 'clone', repo_python.clone_url])
                 subprocess.call(['mv', repo_python.full_name.split("/")[-1], username])
-                os.system("cat")
                 dirname = "./Repo/"
-                f = open("user_details.txt", "w")
-                f.write(vout)
-                f.close()
+                user_d = open("user_details.txt", "w")
+                user_d.write(vout)
+                user_d.close()
+                print "FILE WRITTEN"
                 subprocess.call(['mv', username, dirname])
+                print "FOLDER MOVED"
                 subprocess.call(['mv', "user_details.txt", dirname + "/" + username])
+                print "USER DETAILS MOVED"
                 print "repo cloned!"
                 DONE += 1
                 info = get_or_set(username)
             except:
+                import traceback
+                traceback.print_exc()
                 vout = ""
                 print "Removed: ",username
                 usernames.remove(username)
@@ -523,23 +561,47 @@ def get_info(options):
                 pass
     for username in usernames.copy():
         log('Fetching {}\'s followers and following...', username)
+        print "STATUS: " + str(DONE) + "/" + str(TRIED)
         vout = ""
 
         gh = github.users.get(user = username)
         vout += "<id name=" + str(username) + "> \n"
         try:
-            vout += "<Name>" + str(gh.name) +"</Name> \n"
-        except: 
-            continue
-            vout += str((gh.name).encode('utf-8')) + "</Name> \n"
-        vout += "<Email>" + str(gh.email) +"</Email> \n"
-        vout += "<Bio>" + str(gh.bio) + "</Bio> \n"
-        vout += "<Blog>" + str(gh.blog) + "</Blog> \n"
-        vout += "<Company>" + str(gh.company) + "</Company> \n"
-        vout += "<Hirable>" + str(gh.hireable) + "</Hirable> \n"
-        vout += "<Location>" + str(gh.location) + "</Location> \n"
-        vout += "<repos>" + str(gh.public_repos) + "</repos> \n"
-        vout += "<Updated>" + str(gh.updated_at) + "</Updated> \n"
+            vout += "<Name>" + str(gh.name.encode('utf-8','ignore')) + "</Name> \n"
+        except:
+            vout += "?" + "</Name> \n"
+        try:
+            vout += "<Email>" + str(gh.email.encode('utf-8','ignore')) + "</Email> \n"
+        except:
+            vout += str("?") + "</Email> \n"
+        try:
+            vout += "<Bio>" + str(gh.bio.encode('utf-8','ignore')) + "</Bio> \n"
+        except:
+            vout += "?" + "</Bio> \n"
+        try:
+            vout += "<Blog>" + str(gh.blog.encode('utf-8','ignore')) + "</Blog> \n"
+        except:
+            vout += "?" + "</Blog> \n"
+        try:
+            vout += "<Company>" + str(gh.company.encode('utf-8','ignore')) + "</Company> \n"
+        except:
+            vout += "?" + "</Company> \n"
+        try:
+            vout += "<Hirable>" + str(gh.hireable.encode('utf-8','ignore')) + "</Hirable> \n"
+        except:
+            vout += "?" + "</Hirable> \n"
+        try:
+            vout += "<Location>" + str(gh.location.encode('utf-8','ignore')) + "</Location> \n"
+        except:
+            vout += "?" + "</Hirable> \n"
+        try:
+            vout += "<repos>" + str(gh.public_repos.encode('utf-8','ignore')) + "</repos> \n"
+        except:
+            vout += "?" + "</repos> \n"
+        try:
+            vout += "<Updated>" + str(gh.updated_at.encode('utf-8','ignore')) + "</Updated> \n"
+        except:
+            vout += "?" + "</Updated> \n"
         
         lang = {}
         vout += "<Languages>"
@@ -557,25 +619,53 @@ def get_info(options):
 
         vout += "</id> \n"
 
+        try:
+                repo_python = sorted([x for x in github.repos.list(username).all() if x.language == "Python"],key=lambda x: x.size)[-1]
+                if repo_python.size > 40000: raise Exception("Oversize!")
+                try:
+                    location = gh.location.split(",")[0]
+                except:
+                    location = gh.location
+                result_linkedin = search_people(browser, gh.name + " " + location)
+                if result_linkedin == -1: raise Exception("No linkedin")
+                vout += "<Skills>" + result_linkedin["skills"] + "</Skills>\n"
+                for i,edu in enumerate(result_linkedin["education"]):
+                    vout += "<Educa>\n"
+                    vout += "<Course>" + str(edu["Course"]) + "</Course>\n"
+                    vout += "<School>" + str(edu["School"]) + "</School>\n"
+                    vout += "<Specialization>" + str(edu["Specialization"]) + "</Specialization>\n"
+                    vout += "</Educa>\n"
+                print result_linkedin["jobs"]
+                for i,job in enumerate(result_linkedin["jobs"]):
+                    vout += "<Jobs>\n"
+                    vout += "<Title>" + str(job["title"]) + "</Title>\n"
+                    vout += "<Duration>" + str(job["duration"]) + "</Duration>\n"
+                    vout += "<Place>" + str(job["place"]) + "</Place>\n"
+                    vout += "<Title>" + str(job["title"]) + "</Title>\n"
+                    vout += "</Jobs>\n"
 
-        followers = github.users.followers.list(username).all()
-        following = github.users.followers.list_following(username).all()
-        try: 
-            repo_python = sorted([x for x in github.repos.list(username).all() if x.language == "Python"],key=lambda x: x.size)[-1]
-            import subprocess
-            subprocess.call(['git', 'clone', repo_python.clone_url])
-            subprocess.call(['mv',repo_python.full_name.split("/")[-1],username])
-            dirname = "./Repo/" + username
-            subprocess.call(['mv',username,dirname])
-            print "repo cloned!"
-            info = get_or_set(username)
-            usernames.remove(username)
+
+                import subprocess
+                subprocess.call(['git', 'clone', repo_python.clone_url])
+                subprocess.call(['mv', repo_python.full_name.split("/")[-1], username])
+                os.system("cat")
+                dirname = "./Repo/"
+                f = open("user_details.txt", "w")
+                f.write(vout)
+                f.close()
+                subprocess.call(['mv', username, dirname])
+                subprocess.call(['mv', "user_details.txt", dirname + "/" + username])
+                print "repo cloned!"
+                DONE += 1
+                info = get_or_set(username)
         except:
             print "Removed: ",username
             usernames.remove(username)
             info = get_or_set("removed_" + username)
         file.write(vout)
         file.flush()
+    print "Number of Repositories looked at: ", TRIED
+    print "Number of Repositories actually found: ", DONE
     file.close()
 
 

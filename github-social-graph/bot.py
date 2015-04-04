@@ -32,6 +32,7 @@ def get_projects(page):
     curr = page.find("div", {"class": "editable-item section-item current-position"})
     t_curr = {}
     t_curr["title"] = str(curr.find("a", {"name": "title"}).text)
+
     aux_str = ""
     time = curr.find("span", {"class": "experience-date-locale"})
     t_curr["duration"] = str(time.find("time").text + "Present")
