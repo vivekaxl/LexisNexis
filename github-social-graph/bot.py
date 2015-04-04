@@ -31,12 +31,22 @@ def get_projects(page):
     ret_projects = []
     curr = page.find("div", {"class": "editable-item section-item current-position"})
     t_curr = {}
-    t_curr["title"] = str(curr.find("a", {"name": "title"}).text)
+    try:
+        t_curr["title"] = str(curr.find("a", {"name": "title"}).text)
+    except:
+        t_curr["title"] = "?"
 
     aux_str = ""
+
     time = curr.find("span", {"class": "experience-date-locale"})
-    t_curr["duration"] = str(time.find("time").text + "Present")
-    t_curr["place"] = str(curr.find("span", {"class": "locality"}).text)
+    try:
+        t_curr["duration"] = str(time.find("time").text + "Present")
+    except:
+        t_curr["duration"] = "?"
+    try:
+        t_curr["place"] = str(curr.find("span", {"class": "locality"}).text)
+    except:
+        t_curr["place"] = "?"
     ret_projects.append(t_curr)
     for link in page.find_all("div", {"class": "editable-item section-item past-position"}):
         temp = {}
@@ -91,17 +101,17 @@ def get_education(page):
             print "School: ", school.find("h4", {"class": "summary fn org"}).text
             temp["School"] = school.find("h4", {"class": "summary fn org"}).text
         except:
-            pass
+            temp["School"] = "?"
         try:
             print "Course: ", school.find("span", {"class": "degree"}).text
             temp['Course'] = school.find("span", {"class": "degree"}).text
         except:
-            pass
+            temp['Course'] ="?"
         try:
             print "Specialization: ", school.find("span", {"class": "major"}).text
             temp['Specialization'] = school.find("span", {"class": "major"}).text
         except:
-            pass
+            temp['Specialization'] = "?"
         try:
             print "Duration: ",
             tmp = ""
@@ -111,7 +121,7 @@ def get_education(page):
             temp['Duration'] = tmp
             print
         except:
-            pass
+            temp['Duration'] = "?"
         return_list.append(temp)
 
     return return_list

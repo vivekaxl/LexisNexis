@@ -1,0 +1,90 @@
+<id name=rfong> 
+<Name>Rachel Fong</Name> 
+<Email></Email> 
+?</Bio> 
+<Blog>http://rfol.io</Blog> 
+<Company></Company> 
+?</Hirable> 
+<Location>MIT</Location> 
+?</repos> 
+?</Updated> 
+<Languages><lang0>C:1</lang>
+<lang1>Python:6</lang>
+<lang2>JavaScript:2</lang>
+<lang3>C++:1</lang>
+<lang4>None:3</lang>
+<lang5>CSS:1</lang>
+</Languages>
+</id> 
+<Skills>Python, Algorithms, Ruby on Rails, Git, Software Engineering, C++, Java, Software Development, Programming, HTML, CSS</Skills>
+<Educa>
+<Course>B.S., </Course>
+<School>Massachusetts Institute of Technology</School>
+<Specialization>Computer Science</Specialization>
+</Educa>
+<Jobs>
+<Title>Software Engineer</Title>
+<Duration>May 2014Present</Duration>
+<Place>?</Place>
+<Title>Software Engineer</Title>
+</Jobs>
+<Jobs>
+<Title>Hackstar</Title>
+<Duration>January 2014May 2014</Duration>
+<Place>Greater Boston Area</Place>
+<Title>Hackstar</Title>
+</Jobs>
+<Jobs>
+<Title>CTO/founder</Title>
+<Duration>October 2013January 2014</Duration>
+<Place>Cambridge</Place>
+<Title>CTO/founder</Title>
+</Jobs>
+<Jobs>
+<Title>Software Engineer</Title>
+<Duration>June 2013September 2013</Duration>
+<Place>Cambridge</Place>
+<Title>Software Engineer</Title>
+</Jobs>
+<Jobs>
+<Title>Software Engineer</Title>
+<Duration>June 2012January 2013</Duration>
+<Place>Cambridge, MA</Place>
+<Title>Software Engineer</Title>
+</Jobs>
+<Jobs>
+<Title>Admissions Blogger</Title>
+<Duration>February 2011June 2012</Duration>
+<Place>?</Place>
+<Title>Admissions Blogger</Title>
+</Jobs>
+<Jobs>
+<Title>Undergraduate Researcher, Digital Intuition Group</Title>
+<Duration>February 2012May 2012</Duration>
+<Place>?</Place>
+<Title>Undergraduate Researcher, Digital Intuition Group</Title>
+</Jobs>
+<Jobs>
+<Title>Software Engineering Intern</Title>
+<Duration>May 2011August 2011</Duration>
+<Place>Palo Alto, CA</Place>
+<Title>Software Engineering Intern</Title>
+</Jobs>
+<Jobs>
+<Title>Software Development Intern</Title>
+<Duration>January 2011January 2011</Duration>
+<Place>Cambridge, MA</Place>
+<Title>Software Development Intern</Title>
+</Jobs>
+<Jobs>
+<Title>Software Development Intern</Title>
+<Duration>June 2010August 2010</Duration>
+<Place>Cambridge, MA</Place>
+<Title>Software Development Intern</Title>
+</Jobs>
+<Jobs>
+<Title>Intern</Title>
+<Duration>May 2007September 2007</Duration>
+<Place>Palo Alto, CA</Place>
+<Title>Intern</Title>
+</Jobs>

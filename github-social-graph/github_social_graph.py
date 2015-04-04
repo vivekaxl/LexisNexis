@@ -85,7 +85,6 @@ def fetcher(options):
             following = github.users.followers.list_following(username).all()
             try: 
                 repo_python = sorted([x for x in github.repos.list(username).all() if x.language == "Python"],key=lambda x: x.size)[-1]
-                if repo_python.size > 10000: raise Exception("Oversize!")
                 import subprocess
                 subprocess.call(['git', 'clone', repo_python.clone_url])
                 subprocess.call(['mv',repo_python.full_name.split("/")[-1],username])
@@ -408,7 +407,7 @@ def get_info(options):
         token=options.token)
 
     graph_data = {}
-    max_length = 100
+    max_length = 2000
     usernames = set(options.users)
 
     import os
@@ -433,7 +432,10 @@ def get_info(options):
             vout = ""
             log('Fetching {}\'s followers and following...', username)
             print "STATUS: " + str(DONE) + "/" + str(TRIED)
-            gh = github.users.get(user = username)
+            try:
+                gh = github.users.get(user = username)
+            except:
+                continue
             vout += "<id name=" + str(username) + "> \n"
             try:
                 vout += "<Name>" + str(gh.name.encode('utf-8','ignore')) + "</Name> \n"
@@ -474,11 +476,14 @@ def get_info(options):
             
             lang = {}
             vout += "<Languages>"
-            for r in github.repos.list(username).all():
-                if r.language in lang.keys():
-                    lang[r.language] += 1
-                else:
-                    lang[r.language] = 1
+            try:
+                for r in github.repos.list(username).all():
+                    if r.language in lang.keys():
+                        lang[r.language] += 1
+                    else:
+                        lang[r.language] = 1
+            except:
+                continue
 
             for i,x in enumerate(lang.keys()):
                 vout += "<lang"+str(i)+">"
@@ -491,8 +496,8 @@ def get_info(options):
             followers = github.users.followers.list(username).all()
             following = github.users.followers.list_following(username).all()
             try: 
-                repo_python = sorted([x for x in github.repos.list(username).all() if x.language == "Python"],key=lambda x: x.size)[-1]
-                if repo_python.size > 40000: raise Exception("Oversize!")
+                repo_python = sorted([x for x in github.repos.list(username).all() if x.language == "Python" and x.fork
+                                      is False], key=lambda x: x.size)[-1]
                 try:
                     location = gh.location.split(",")[0]
                 except:
@@ -525,8 +530,14 @@ def get_info(options):
 
 
                 import subprocess
-                subprocess.call(['git', 'clone', repo_python.clone_url])
-                subprocess.call(['mv', repo_python.full_name.split("/")[-1], username])
+                try:
+                    subprocess.call(['git', 'clone', repo_python.clone_url])
+                except:
+                    pass
+                try:
+                    subprocess.call(['mv', repo_python.full_name.split("/")[-1], username])
+                except:
+                    pass
                 dirname = "./Repo/"
                 user_d = open("user_details.txt", "w")
                 user_d.write(vout)
@@ -560,11 +571,17 @@ def get_info(options):
             except:
                 pass
     for username in usernames.copy():
+        print "-" * 200
+        TRIED += 1
         log('Fetching {}\'s followers and following...', username)
         print "STATUS: " + str(DONE) + "/" + str(TRIED)
         vout = ""
 
-        gh = github.users.get(user = username)
+        try:
+            gh = github.users.get(user = username)
+        except:
+            continue
+
         vout += "<id name=" + str(username) + "> \n"
         try:
             vout += "<Name>" + str(gh.name.encode('utf-8','ignore')) + "</Name> \n"
@@ -605,11 +622,14 @@ def get_info(options):
         
         lang = {}
         vout += "<Languages>"
-        for r in github.repos.list(username).all():
-            if r.language in lang.keys():
-                lang[r.language] += 1
-            else:
-                lang[r.language] = 1
+        try:
+            for r in github.repos.list(username).all():
+                if r.language in lang.keys():
+                    lang[r.language] += 1
+                else:
+                    lang[r.language] = 1
+        except:
+            continue
 
         for i,x in enumerate(lang.keys()):
             vout += "<lang"+str(i)+">"
@@ -620,14 +640,18 @@ def get_info(options):
         vout += "</id> \n"
 
         try:
-                repo_python = sorted([x for x in github.repos.list(username).all() if x.language == "Python"],key=lambda x: x.size)[-1]
-                if repo_python.size > 40000: raise Exception("Oversize!")
+                repo_python = sorted([x for x in github.repos.list(username).all() if x.language == "Python" and x.fork
+                                      is False], key=lambda x: x.size)[-1]
                 try:
                     location = gh.location.split(",")[0]
                 except:
                     location = gh.location
                 result_linkedin = search_people(browser, gh.name + " " + location)
-                if result_linkedin == -1: raise Exception("No linkedin")
+                if result_linkedin == -1:
+                    if gh.email is not None:
+                        result_linkedin = search_people(browser, gh.name + " " + str(gh.email.encode('utf-8', 'ignore')))
+                if result_linkedin == -1:raise Exception("No linkedin")
+
                 vout += "<Skills>" + result_linkedin["skills"] + "</Skills>\n"
                 for i,edu in enumerate(result_linkedin["education"]):
                     vout += "<Educa>\n"
@@ -646,9 +670,14 @@ def get_info(options):
 
 
                 import subprocess
-                subprocess.call(['git', 'clone', repo_python.clone_url])
-                subprocess.call(['mv', repo_python.full_name.split("/")[-1], username])
-                os.system("cat")
+                try:
+                    subprocess.call(['git', 'clone', repo_python.clone_url])
+                except:
+                    pass
+                try:
+                    subprocess.call(['mv', repo_python.full_name.split("/")[-1], username])
+                except:
+                    pass
                 dirname = "./Repo/"
                 f = open("user_details.txt", "w")
                 f.write(vout)
